@@ -1,4 +1,4 @@
-# Desafio 01 - Conceitos do Node.js
+# Desafio 02 - Trabalhando com middlewares
 
 <div align="center">
     <img width="900px" alt="Ignite" src=".github/capa_ignite.png" />
@@ -30,11 +30,11 @@ Visite à [Rockseat](https://rocketseat.com.br/) para saber mais sobre o curso.
 
 ## :rocket: Sobre o desafio
 
-Nesse desafio, foi criada uma aplicação backend para treinar o que foi visto até agora no Node.js!
+Nesse desafio você irá trabalhar mais a fundo com middlewares no Express. Dessa forma você será capaz de fixar mais ainda os conhecimentos obtidos até agora. 
 
+Para facilitar um pouco mais do conhecimento da regra de negócio, você irá trabalhar com a mesma aplicação do desafio anterior: uma aplicação para gerenciar tarefas (ou *todos*) mas com algumas mudanças.
 
-É uma aplicação para gerenciar tarefas (em inglês *todos*). 
-Será permitida a criação de um `user` com `name` e `username`,bem como fazer o CRUD de *todos*:
+Será permitida a criação de um usuário com `name` e `username`, bem como fazer o CRUD de *todos*:
 
 - Criar um novo *todo*;
 - Listar todos os *todos*;
@@ -42,20 +42,22 @@ Será permitida a criação de um `user` com `name` e `username`,bem como fazer 
 - Marcar um *todo* como feito;
 - Excluir um *todo*;
 
-Tudo isso para cada `user` em específico (o `username` será passado pelo header). 
+Tudo isso para cada usuário em específico. Além disso, dessa vez teremos um plano grátis onde o usuário só pode criar até dez *todos* e um plano Pro que irá permitir criar *todos* ilimitados, isso tudo usando middlewares para fazer as validações necessárias.
+
+A seguir veremos com mais detalhes o que e como precisa ser feito 🚀
 
 ### :keyboard: Instalação e Execução do Projeto
 
 - Clone o repositório
 
 ```
-git clone https://github.com/lucasbarque/TodoList.git todo-list
+git clone https://github.com/lucasbarque/TodoListMiddlewares.git todo-list-middlewares
 ```
 
 - Entre na pasta do projeto
 
 ```
-cd todo-list
+cd todo-list-middlewares
 ```
 
 - Instale as dependências com o Yarn
@@ -96,176 +98,118 @@ Done in 2.47s.
 
 Foi utilizado um modelo de template que possui o esqueleto do projeto.
 
-O template pode ser encontrado na seguinte url: **[Acessar Template](https://github.com/rocketseat-education/ignite-template-conceitos-do-nodejs)**
+O template pode ser encontrado na seguinte url: **[Acessar Template](https://github.com/rocketseat-education/ignite-template-trabalhando-com-middlewares)**
 
 **Dica**: Caso não saiba utilizar repositórios do Github como template, utilize o guia em **[nosso FAQ](https://www.notion.so/ddd8fcdf2339436a816a0d9e45767664).**
 
 Agora navegue até a pasta criada e abra no Visual Studio Code, lembre-se de executar o comando `yarn` no seu terminal para instalar todas as dependências, e você terá algo parecido com isso:
 
 <p align="center">
-  <img  width="900px" src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2F9f8032e9-d459-4c6f-a60f-d8c90fd9bc5a%2FUntitled.png?table=block&id=24fafc2d-f3d9-4f45-a5d5-6531a87c20e7&width=1820&userId=37844a7c-d0f1-4a9f-90e6-54ef97978d66&cache=v2">
+  <img  width="900px" src="https://www.notion.so/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fsecure.notion-static.com%2Fdb31d611-26f4-41a4-95be-631f56cc8983%2FUntitled.png?table=block&id=bff639fa-4de8-4d5f-82ea-7b2f5dc03029&spaceId=08f749ff-d06d-49a8-a488-9846e081b224&width=2000&userId=f7e67dd8-eb0e-43fc-ba72-f8259f6891a1&cache=v2">
 </p>
 
-### Rotas da aplicação (Instruções)
-
-Documentação no Notion sobre as rotas e testes: **[Documentação API e Testes](https://www.notion.so/Desafio-01-Conceitos-do-Node-js-59ccb235aecd43a6a06bf09a24e7ede8)**
+### Middlewares da aplicação
 
 Com o template já clonado e o arquivo `index.js` aberto, você deve completar onde não possui código com o código para atingir os objetivos de cada teste.
 
-#### POST `/users`
+Nesse desafio não será necessário alterar o código de nenhuma rota, **apenas dos middlewares**. Os testes irão também testar o funcionamento das rotas mas o resultado depende apenas da dos middlewares.
 
-A rota deve receber `name`, e `username` dentro do corpo da requisição. Ao cadastrar um novo `user`, ele deve ser armazenado dentro de um objeto no seguinte formato:  
+Aqui teremos uma breve descrição do que cada middleware deve fazer e na seção [Especificação dos testes](https://www.notion.so/Desafio-02-Trabalhando-com-middlewares-4f89bf538c2e4ee291382b92bdc36790) você verá com mais detalhes o que precisa ser feito para satisfazer cada teste.
 
-```jsx
-{ 
-	id: 'uuid', // precisa ser um uuid
-	name: 'Danilo Vieira', 
-	username: 'danilo', 
-	todos: []
-}
-```
+### checksExistsUserAccount
 
-Certifique-se que o ID seja um UUID, e de sempre iniciar a lista `todos` como um array vazio.
+Esse middleware é responsável por receber o username do usuário pelo header e validar se existe ou não um usuário com o username passado. Caso exista, o usuário deve ser repassado para o request e a função next deve ser chamada.
 
-#### GET `/todos`
+### checksCreateTodosUserAvailability
 
-A rota deve receber, pelo header da requisição, uma propriedade `username` contendo o username do `user` e retornar uma lista com todas as tarefas desse `user`.
+Esse middleware deve receber o **usuário** já dentro do request e chamar a função next apenas se esse usuário ainda estiver no **plano grátis e ainda não possuir 10 *todos* cadastrados** ou se ele **já estiver com o plano Pro ativado**. 
 
-#### POST `/todos`
+### checksTodoExists
 
-A rota deve receber `title` e `deadline` dentro do corpo da requisição e, uma propriedade `username` contendo o username do `user` dentro do header da requisição. Ao criar um novo *todo*, ele deve ser armazenada dentro da lista `todos` do `user` que está criando essa tarefa. Cada tarefa deverá estar no seguinte formato:  . Certifique-se que o ID seja um UUID.
+Esse middleware deve receber o **username** de dentro do header e o **id** de um *todo* de dentro de `request.params`. Você deve validar o usuário, validar que o `id` seja um uuid e também validar que esse `id` pertence a um *todo* do usuário informado.
 
-```jsx
-{ 
-	id: 'uuid', // precisa ser um uuid
-	title: 'Nome da tarefa',
-	done: false, 
-	deadline: '2021-02-27T00:00:00.000Z', 
-	created_at: '2021-02-22T00:00:00.000Z'
-}
-```
+Com todas as validações passando, o *todo* encontrado deve ser passado para o `request` assim como o usuário encontrado também e a função next deve ser chamada.
 
-**Observação**: Lembre-se de iniciar a propriedade `done` sempre como `false` ao criar um *todo*.
+### findUserById
 
-**Dica**: Ao fazer a requisição com o Insomnia ou Postman, preencha a data de `deadline` com o formato `ANO-MÊS-DIA` e ao salvar a tarefa pela rota, faça da seguinte forma: 
+Esse middleware possui um funcionamento semelhante ao middleware `checksExistsUserAccount` mas a busca pelo usuário deve ser feita através do **id** de um usuário passado por parâmetro na rota. Caso o usuário tenha sido encontrado, o mesmo deve ser repassado para dentro do `request.user` e a função next deve ser chamada.
 
-```jsx
-{ 
-	id: 'uuid', // precisa ser um uuid
-	title: 'Nome da tarefa',
-	done: false, 
-	deadline: new Date(deadline), 
-	created_at: new Date()
-}
-```
+## Específicação dos testes
 
-Usar `new Date(deadline)` irá realizar a transformação da string "ANO-MÊS-DIA" (por exemplo "2021-02-25") para uma data válida do JavaScript.
+Em cada teste, tem uma breve descrição no que sua aplicação deve cumprir para que o teste passe.
 
-#### PUT `/todos/:id`
+<aside>
+💡 Caso você tenha dúvidas quanto ao que são os testes, e como interpretá-los, dê uma olhada em **[nosso FAQ](https://www.notion.so/FAQ-Desafios-ddd8fcdf2339436a816a0d9e45767664)**
 
-A rota deve receber, pelo header da requisição, uma propriedade `username` contendo o username do `user` e receber as propriedades `title` e `deadline` dentro do corpo. É preciso alterar **apenas** o `title` e o `deadline` da tarefa que possua o `id` igual ao `id` presente nos parâmetros da rota.
-
-#### PATCH `/todos/:id/done`
-
-A rota deve receber, pelo header da requisição, uma propriedade `username` contendo o username do `user` e alterar a propriedade `done` para `true` no *todo* que possuir um `id` igual ao `id` presente nos parâmetros da rota.
-
-#### DELETE `/todos/:id`
-
-A rota deve receber, pelo header da requisição, uma propriedade `username` contendo o username do `user` e excluir o *todo* que possuir um `id` igual ao `id` presente nos parâmetros da rota.
-
-### Especificação dos testes (Instruções)
-
-Em cada teste, tem uma breve descrição no que sua aplicação deve cumprir para que o teste passe.
-
-Caso você tenha dúvidas quanto ao que são os testes, e como interpretá-los, dê uma olhada em **[nosso FAQ](https://www.notion.so/FAQ-Desafios-ddd8fcdf2339436a816a0d9e45767664)**
+</aside>
 
 Para esse desafio, temos os seguintes testes:
 
-#### Testes de `user`s
+### Testes dos middlewares
 
-- **Should be able to create a new user**
+- **Should be able to find user by username in header and pass it to request.user**
+    
+    Para que esse teste passe, você deve permitir que o middleware **checksExistsUserAccount** receba um username pelo header do request e caso um usuário com o mesmo username exista, ele deve ser colocado dentro de `request.user` e, ao final, retorne a chamada da função `next`.
+    
+    Atente-se bem para o nome da propriedade que armazenará o objeto `user` no request.
+    
+- **Should not be able to find a non existing user by username in header**
+    
+    Para que esse teste passe, no middleware **checksExistsUserAccount** você deve retornar uma resposta com status `404` caso o username passado pelo header da requisição não pertença a nenhum usuário. Você pode também retornar uma mensagem de erro mas isso é opcional.
+    
+- **Should be able to let user create a new todo when is in free plan and have less than ten todos**
+    
+    Para que esse teste passe, você deve permitir que o middleware **checksCreateTodosUserAvailability** receba o objeto `user` (considere sempre que o objeto existe) da `request` e chame a função `next` somente no caso do usuário estar no **plano grátis e ainda não possuir 10 *todos* cadastrados** ou se ele **já estiver com o plano Pro ativado**.
+    
+    
+    💡 Você pode verificar se o usuário possui um plano Pro ou não a partir da propriedade `user.pro`. Caso seja `true` significa que o plano Pro está em uso.
 
-Para que esse teste passe, você deve permitir que um `user` seja criado e retorne um json com o `user` criado. Você pode ver o formato de um `user` [aqui](https://www.notion.so/Desafio-01-Conceitos-do-Node-js-59ccb235aecd43a6a06bf09a24e7ede8). 
+    
+- **Should not be able to let user create a new todo when is not Pro and already have ten todos**
+    
+    Para que esse teste passe, no middleware **checksCreateTodosUserAvailability** você deve retornar uma resposta com status `403` caso o usuário recebido pela requisição esteja no **plano grátis** e **já tenha 10 *todos* cadastrados**. Você pode também retornar uma mensagem de erro mas isso é opcional.
+    
+- **Should be able to let user create infinite new todos when is in Pro plan**
+    
+    Para que esse teste passe, você deve permitir que o middleware **checksCreateTodosUserAvailability** receba o objeto `user` (considere sempre que o objeto existe) da `request` e chame a função `next` caso o usuário já esteja com o plano Pro. 
+    
+    💡 Se você satisfez os dois testes anteriores antes desse, ele já deve passar também.
+    
+    
+- **Should be able to put user and todo in request when both exits**
+    
+    Para que esse teste passe, o middleware **checksTodoExists** deve receber o `username` de dentro do header e o `id` de um *todo* de dentro de `request.params`. Você deve validar que o usuário exista, validar que o `id` seja um uuid e também validar que esse `id` pertence a um *todo* do usuário informado.
+    
+    Com todas as validações passando, o *todo* encontrado deve ser passado para o `request` assim como o usuário encontrado também e a função next deve ser chamada.
+    
+    É importante que você coloque dentro de `request.user` o usuário encontrado e dentro de `request.todo` o *todo* encontrado.
+    
+- **Should not be able to put user and todo in request when user does not exists**
+    
+    Para que esse teste passe, no middleware **checksTodoExists** você deve retornar uma resposta com status `404` caso não exista um usuário com o `username` passado pelo header da requisição.
+    
+- **Should not be able to put user and todo in request when todo id is not uuid**
+    
+    Para que esse teste passe, no middleware **checksTodoExists** você deve retornar uma resposta com status `400` caso o `id` do *todo* passado pelos parâmetros da requisição não seja um UUID válido (por exemplo `1234abcd`).
+    
+- **Should not be able to put user and todo in request when todo does not exists**
+    
+    Para que esse teste passe, no middleware **checksTodoExists** você deve retornar uma resposta com status `404` caso o `id` do *todo* passado pelos parâmetros da requisição não pertença a nenhum *todo* do usuário encontrado.
+    
+- **Should be able to find user by id route param and pass it to request.user**
+    
+    Para que esse teste passe, o middleware **findUserById** deve receber o `id` de um usuário de dentro do `request.params`. Você deve validar que o usuário exista, repassar ele para `request.user` e retornar a chamada da função next.
+    
+- **Should not be able to pass user to request.user when it does not exists**
+    
+    Para que esse teste passe, no middleware **findUserById** você deve retornar uma resposta com status `404` caso o `id` do usuário **passado pelos parâmetros da requisição não pertença a nenhum usuário cadastrado.
+    
 
-Também é necessário que você retorne a resposta com o código `201`.
+---
 
-- **Should not be able to create a new user when username already exists**
+Todos os demais testes são os mesmos testes encontrados no desafio 01 com algumas (ou nenhuma) mudanças.
 
-Para que esse teste passe, antes de criar um `user` você deve validar se outro `user` com o mesmo `username` já existe. Caso exista, retorne uma resposta com status `400` e um json no seguinte formato:
-
-```jsx
-{
-	error: 'Mensagem do erro'
-}
-```
-
-A mensagem pode ser de sua escolha, desde que a propriedade seja `error`.
-
-#### Testes de *todos*
-
-**Middleware**
-
-Para completar todos os testes referentes à *todos* é necessário antes ter completado o código que falta no middleware `checkExistsUserAccount`. Para isso, você deve pegar o `username` do `user` no header da requisição, verificar se esse `user` existe e então colocar esse `user` dentro da `request` antes de chamar a função `next`. Caso o `user` não seja encontrado, você deve retornar uma resposta contendo status `404` e um json no seguinte formato:
-
-```jsx
-{
-	error: 'Mensagem do erro'
-}
-```
-
-**Observação:** O username deve ser enviado pelo header em uma propriedade chamada `username`:
-
-- **Should be able to list all user's todos**
-
-Para que esse teste passe, na rota GET `/todos` é necessário pegar o `user` que foi repassado para o `request` no middleware `checkExistsUserAccount` e então retornar a lista `todos` que está no objeto do `user` conforme foi criado para satisfazer o [primeiro teste](https://www.notion.so/Desafio-01-Conceitos-do-Node-js-59ccb235aecd43a6a06bf09a24e7ede8).
-
-- **Should be able to create a new todo**
-
-Para que esse teste passe, na rota POST `/todos` é necessário pegar o `user` que foi repassado para o `request` no middleware `checkExistsUserAccount`, pegar também o `title` e o `deadline` do corpo da requisição e adicionar um novo *todo* na lista `todos` que está no objeto do `user`.
-
-Lembre-se de seguir a estrutura padrão de um *todo* como mostrado [aqui](https://www.notion.so/Desafio-01-Conceitos-do-Node-js-59ccb235aecd43a6a06bf09a24e7ede8). 
-
-- **Should be able to update a todo**
-
-Para que esse teste passe, na rota PUT `/todos/:id` é necessário atualizar um *todo* existente, recebendo o `title` e o `deadline` pelo corpo da requisição e o `id` presente nos parâmetros da rota.
-
-- **Should not be able to update a non existing todo**
-
-Para que esse teste passe, você não deve permitir a atualização de um *todo* que não existe e retornar uma resposta contendo um status `404` e um json no seguinte formato: 
-
-```jsx
-{
-	error: 'Mensagem do erro'
-}
-```
-
-- **Should be able to mark a todo as done**
-
-Para que esse teste passe, na rota PATCH `/todos/:id/done` você deve mudar a propriedade `done`de um *todo* de `false` para `true`, recebendo o `id` presente nos parâmetros da rota.
-
-- **Should not be able to mark a non existing todo as done**
-
-Para que esse teste passe, você não deve permitir a mudança da propriedade `done` de um *todo* que não existe e retornar uma resposta contendo um status `404` e um json no seguinte formato: 
-
-```jsx
-{
-	error: 'Mensagem do erro'
-}
-```
-
-- **Should be able to delete a todo**
-
-Para que esse teste passe, DELETE `/todos/:id` você deve permitir que um *todo* seja excluído usando o `id` passado na rota. O retorno deve ser apenas um status `204` que representa uma resposta sem conteúdo.
-
-- **Should not be able to delete a non existing todo**
-
-Para que esse teste passe, você não deve permitir excluir um *todo* que não exista e retornar uma resposta contendo um status `404` e um json no seguinte formato:
-
-```jsx
-{
-	error: 'Mensagem do erro'
-}
-```
+⚠️  Vale reforçar que esse desafio é focado apenas em middlewares e você não precisa modificar o conteúdo das rotas para que os testes passem 💜
 
 ## :memo: Licença
 
